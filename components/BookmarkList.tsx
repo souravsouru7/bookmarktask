@@ -14,6 +14,8 @@ type BookmarkListProps = {
 }
 
 export default function BookmarkList({ bookmarks, onDelete }: BookmarkListProps) {
+    console.log('BookmarkList rendering with bookmarks:', bookmarks.length)
+    
     return (
         <div className="space-y-4">
             {!bookmarks || bookmarks.length === 0 ? (

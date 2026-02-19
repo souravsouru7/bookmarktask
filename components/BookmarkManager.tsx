@@ -42,10 +42,15 @@ export default function BookmarkManager({ initialBookmarks, userId }: { initialB
                     
 
                     if (payload.eventType === 'INSERT') {
+                        console.log('Received INSERT event:', payload.new)
                         setBookmarks((prev) => {
                             // Check if already exists (optimistic update)
                             // With client-side ID, this is a perfect match check
-                            if (prev.some((b) => b.id === payload.new.id)) return prev
+                            if (prev.some((b) => b.id === payload.new.id)) {
+                                console.log('Bookmark already exists, ignoring realtime event')
+                                return prev
+                            }
+                            console.log('Adding bookmark from realtime event')
                             return [payload.new as Bookmark, ...prev]
                         })
                     } else if (payload.eventType === 'DELETE') {
@@ -74,7 +79,12 @@ export default function BookmarkManager({ initialBookmarks, userId }: { initialB
             created_at: new Date().toISOString(),
         }
 
-        setBookmarks((prev) => [newBookmark, ...prev])
+        console.log('Adding bookmark optimistically:', newBookmark)
+        setBookmarks((prev) => {
+            const updated = [newBookmark, ...prev]
+            console.log('Bookmarks after optimistic update:', updated)
+            return updated
+        })
 
         const { error } = await supabase
             .from('bookmarks')
@@ -85,6 +95,8 @@ export default function BookmarkManager({ initialBookmarks, userId }: { initialB
             alert(`Error adding bookmark: ${error.message}`)
             // Revert on error
             setBookmarks((prev) => prev.filter((b) => b.id !== newId))
+        } else {
+            console.log('Bookmark added successfully to database')
         }
     }
 
